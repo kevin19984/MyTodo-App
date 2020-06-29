@@ -1,7 +1,7 @@
 class Todo {
   int id;
   String work;
-  DateTime deadline;
+  String deadline;
 
   Todo({ this.id, this.work, this.deadline });
 

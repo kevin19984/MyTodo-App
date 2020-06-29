@@ -24,20 +24,14 @@ class DBHelper {
   initDB() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'TodoList.db');
-
+    
     return await openDatabase(
       path,
       version: 1,
       onCreate: (db, version) async {
-        await db.execute('''
-          CREATE TABLE $tableName(
-            id INTEGER PRIMARY KEY,
-            work TEXT,
-            deadline DATETIME,
-          )
-        ''');
-      },
-      onUpgrade: (db, oldVersion, newVersion){}
+        await db.execute("CREATE TABLE $tableName(id INTEGER PRIMARY KEY, work TEXT, deadline Text)");
+      },  
+      onUpgrade: (db, oldVersion, newVersion) {}
     );
   }
   
@@ -88,11 +82,6 @@ class DBHelper {
   //Delete All
   Future<void> deleteAllTodo() async {
     final db = await database;
-    await db.delete(
-      tableName,
-      where: null,
-      whereArgs: null,
-    );
+    await db.rawDelete('DELETE FROM $tableName');
   }
-
 }
