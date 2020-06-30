@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mytodo_app/models/todoModel.dart';
 import 'package:mytodo_app/services/dbHelper.dart';
-// import 'package:intl/intl.dart';
+import 'package:intl/intl.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -10,16 +10,20 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  Map tem = {};
-
+  List<Todo> data = [];
+  final _formKey = GlobalKey<FormState>();
+  
+  String _temDate = '';
+  String _temTime = '';
+  String error = '';
+  
   @override
   Widget build(BuildContext context) {
-    
-    tem = tem.isNotEmpty ? tem : ModalRoute.of(context).settings.arguments;
-    List<Todo> data = tem['allTodo'];
+    data = data.isNotEmpty ? data : ModalRoute.of(context).settings.arguments;
     data.sort((a,b) => a.deadline.compareTo(b.deadline));
-    print(data);
-    
+    Todo addTodo = Todo(work: '', deadline: '');
+    // addTodo = addTodo.work != '' && addTodo.deadline != '' ? addTodo : Todo(work: '', deadline: DateFormat('yyyy-MM-dd').format(DateTime.now()).toString());
+
     return Scaffold(
       appBar: AppBar(
         title: Text('My ToDo List'),
@@ -29,11 +33,110 @@ class _HomeState extends State<Home> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Todo addTodo = Todo(work: 'BOB 센터 방문', deadline: '2020-07-02 12:00');
-          DBHelper().insertTodo(addTodo);
-          setState(() {
-            data.add(addTodo);
-          });
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                content: StatefulBuilder(
+                  builder: (context, setState) {
+                    return Stack(
+                      // overflow: Overflow.visible,
+                      children: <Widget>[
+                        Positioned(
+                          right: -40.0,
+                          top: -40.0,
+                          child: InkResponse(
+                            onTap: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: CircleAvatar(
+                              child: Icon(Icons.close),
+                              backgroundColor: Colors.purple[300],
+                            ),
+                          ),
+                        ),
+                        Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              SizedBox(height: 5.0),
+                              TextFormField(
+                                decoration: InputDecoration(
+                                  hintText: 'Todo',
+                                ),
+                                validator: (val) => val.isEmpty ? 'Enter Todo' : null,
+                                onChanged: (val) {
+                                  setState(() => addTodo.work = val);
+                                },
+                              ),
+                              SizedBox(height: 5.0),
+                              Row(
+                                children: <Widget>[
+                                  IconButton(
+                                    icon: Icon(Icons.date_range),
+                                    onPressed: () async {
+                                      showDatePicker(
+                                        context: context, 
+                                        initialDate: DateTime.now(), 
+                                        firstDate: DateTime(2020), 
+                                        lastDate: DateTime(2022)
+                                      ).then((date) {
+                                        setState(() {
+                                          _temDate = date.toString().substring(0, 10);
+                                        });
+                                      });
+                                    },
+                                  ),
+                                  Text(_temDate == '' ? 'Pick Date' : _temDate),
+                                ],
+                              ),
+                              // SizedBox(height: 10.0),
+                              Row(
+                                children: <Widget>[
+                                  IconButton(
+                                    icon: Icon(Icons.access_time),
+                                    onPressed: () async {
+                                      showTimePicker(
+                                        context: context, 
+                                        // initialDate: DateTime.now(), 
+                                        // firstDate: DateTime(2020), 
+                                        // lastDate: DateTime(2022)
+                                        initialTime: TimeOfDay.now(),
+                                      ).then((date) {
+                                        setState(() {
+                                          _temTime = date.toString().substring(10, 15);
+                                        });
+                                      });
+                                    },
+                                  ),
+                                  Text(_temTime == '' ? 'Pick Time' : _temTime),
+                                ],
+                              ),
+                              SizedBox(height: 5.0),
+                              RaisedButton(
+                                child: Text("Add Todo"),
+                                onPressed: () async {
+                                  if (_formKey.currentState.validate()) {
+                                    addTodo.deadline = _temDate + ' ' + _temTime;
+                                    DBHelper().insertTodo(addTodo);
+                                    setState(() {
+                                      data.add(addTodo);
+                                    });
+                                    Navigator.pop(context);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    );
+                  },
+                ),
+              );
+            },
+          );  
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.purple[50],

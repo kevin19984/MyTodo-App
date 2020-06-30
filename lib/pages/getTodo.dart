@@ -11,12 +11,8 @@ class GetTodo extends StatefulWidget {
 class _GetTodoState extends State<GetTodo> {
 
   void getAllTodo() async {
-
     List<Todo> allTodo = await DBHelper().getAllTodo();
-    print(allTodo); 
-    Navigator.pushReplacementNamed(context, '/home', arguments: {
-      'allTodo': allTodo,
-    });
+    Navigator.pushReplacementNamed(context, '/home', arguments: allTodo);
   }
 
   @override
